@@ -8,6 +8,7 @@
 #include "nexgen/clock/ClockWindow.h"
 
 static constexpr auto kServerName = "nexgen.clock";
+static inline QString serverName() { return QStringLiteral("nexgen.clock"); }
 
 int main(int argc, char** argv) {
   QApplication app(argc, argv);
@@ -57,7 +58,7 @@ int main(int argc, char** argv) {
     return QJsonObject{{"ok", false}, {"error", QStringLiteral("unknown cmd")}, {"cmd", cmd}};
   });
 
-  if (!server.listen(QStringLiteral(kServerName))) {
+  if (!server.listen(serverName())) {
     return 0; // already running
   }
 
