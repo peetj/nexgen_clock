@@ -52,6 +52,11 @@ int main(int argc, char** argv) {
       w.setTimeZoneId(tz.toUtf8());
       return QJsonObject{{"ok", true}, {"tz", tz}};
     }
+        if (cmd == QStringLiteral("reloadTheme")) {
+      themes.load(settings);
+      themes.applyTo(app);
+      return QJsonObject{{"ok", true}};
+    }
     if (cmd == QStringLiteral("getState")) {
       return QJsonObject{{"ok", true}, {"visible", w.isVisible()}, {"tz", QString::fromUtf8(w.timeZoneId())}};
     }

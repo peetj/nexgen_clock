@@ -7,6 +7,7 @@
 #include <QTimeZone>
 #include <QGuiApplication>
 #include <QScreen>
+#include <QPainter>
 
 namespace nexgen::clock {
 
@@ -27,18 +28,14 @@ ClockWindow::ClockWindow(QWidget* parent) : QWidget(parent) {
   f.setBold(true);
   m_label->setFont(f);
 
+  // Use palette text color so themes work.
+  QPalette lp = m_label->palette();
+  lp.setColor(QPalette::WindowText, palette().color(QPalette::WindowText));
+  m_label->setPalette(lp);
+
   auto* layout = new QVBoxLayout(this);
   layout->setContentsMargins(24, 18, 24, 18);
   layout->addWidget(m_label);
-
-  // Temporary styling. We'll replace with proper theme tokens from themeset.
-  setStyleSheet(QStringLiteral(R"(
-    #ClockWindow {
-      border-radius: 18px;
-      background: rgba(20,20,20,180);
-    }
-    QLabel { color: white; }
-  )"));
 
   m_timer = new QTimer(this);
   m_timer->setInterval(250);
@@ -85,6 +82,21 @@ void ClockWindow::toggleVisible() {
 void ClockWindow::showEvent(QShowEvent* e) {
   QWidget::showEvent(e);
   updateTimeText();
+}
+
+void ClockWindow::paintEvent(QPaintEvent* e) {
+  Q_UNUSED(e);
+  QPainter p(this);
+  p.setRenderHint(QPainter::Antialiasing, true);
+
+  const QRectF r = rect();
+  const qreal radius = 18.0;
+
+  // Background from palette Window color (can include alpha).
+  const QColor bg = palette().color(QPalette::Window);
+  p.setPen(Qt::NoPen);
+  p.setBrush(bg);
+  p.drawRoundedRect(r.adjusted(0.5, 0.5, -0.5, -0.5), radius, radius);
 }
 
 } // namespace nexgen::clock

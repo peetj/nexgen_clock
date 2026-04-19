@@ -21,6 +21,7 @@ public slots:
 
 protected:
   void showEvent(QShowEvent* e) override;
+  void paintEvent(QPaintEvent* e) override;
 
 private:
   QLabel* m_label = nullptr;
