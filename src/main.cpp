@@ -30,6 +30,7 @@ int main(int argc, char** argv) {
 
   // Window
   nexgen::clock::ClockWindow w;
+  w.loadUiSettings(settings);
 
   // IPC
   nexgen::sys::ipc::IpcServer server;
@@ -53,7 +54,44 @@ int main(int argc, char** argv) {
     if (cmd == QStringLiteral("setTimezone")) {
       const QString tz = msg.value("tz").toString();
       w.setTimeZoneId(tz.toUtf8());
+      settings.setValue(QStringLiteral("Clock/tz"), tz);
+      settings.sync();
       return QJsonObject{{"ok", true}, {"tz", tz}};
+    }
+    if (cmd == QStringLiteral("move")) {
+      const int x = msg.value("x").toInt(0);
+      const int y = msg.value("y").toInt(0);
+      w.moveTo(QPoint(x, y));
+      w.saveUiSettings(settings);
+      settings.sync();
+      return QJsonObject{{"ok", true}, {"x", x}, {"y", y}};
+    }
+    if (cmd == QStringLiteral("setSize")) {
+      const QString preset = msg.value("preset").toString();
+      const auto p = preset.toLower();
+      using P = nexgen::clock::ClockWindow::SizePreset;
+      if (p == QStringLiteral("tiny")) w.setSizePreset(P::Tiny);
+      else if (p == QStringLiteral("small")) w.setSizePreset(P::Small);
+      else if (p == QStringLiteral("large")) w.setSizePreset(P::Large);
+      else if (p == QStringLiteral("very_large") || p == QStringLiteral("verylarge") || p == QStringLiteral("very-large")) w.setSizePreset(P::VeryLarge);
+      else w.setSizePreset(P::Default);
+      w.saveUiSettings(settings);
+      settings.sync();
+      return QJsonObject{{"ok", true}, {"preset", preset}};
+    }
+    if (cmd == QStringLiteral("setOpacity")) {
+      const double v = msg.value("value").toDouble(1.0);
+      w.setOpacity(v);
+      w.saveUiSettings(settings);
+      settings.sync();
+      return QJsonObject{{"ok", true}, {"value", v}};
+    }
+    if (cmd == QStringLiteral("setTranslucent")) {
+      const bool on = msg.value("on").toBool(true);
+      w.setTranslucentBackground(on);
+      w.saveUiSettings(settings);
+      settings.sync();
+      return QJsonObject{{"ok", true}, {"on", on}};
     }
         if (cmd == QStringLiteral("reloadTheme")) {
       // IMPORTANT: QSettings can cache values across the process lifetime.
@@ -89,6 +127,12 @@ int main(int argc, char** argv) {
 
   if (!server.listen(serverName())) {
     return 0; // already running
+  }
+
+  // restore timezone if present
+  const QString tz = settings.value(QStringLiteral("Clock/tz"), QString()).toString();
+  if (!tz.isEmpty()) {
+    w.setTimeZoneId(tz.toUtf8());
   }
 
   return app.exec();
