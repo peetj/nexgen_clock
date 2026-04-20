@@ -8,10 +8,12 @@
 #include <QGuiApplication>
 #include <QScreen>
 #include <QPainter>
+#include <QApplication>
 
 namespace nexgen::clock {
 
 ClockWindow::ClockWindow(QWidget* parent) : QWidget(parent) {
+
   setObjectName(QStringLiteral("ClockWindow"));
 
   applyWindowFlags();
@@ -28,10 +30,7 @@ ClockWindow::ClockWindow(QWidget* parent) : QWidget(parent) {
   f.setBold(true);
   m_label->setFont(f);
 
-  // Use palette text color so themes work.
-  QPalette lp = m_label->palette();
-  lp.setColor(QPalette::WindowText, palette().color(QPalette::WindowText));
-  m_label->setPalette(lp);
+  syncPalette();
 
   auto* layout = new QVBoxLayout(this);
   layout->setContentsMargins(24, 18, 24, 18);
@@ -54,6 +53,17 @@ void ClockWindow::setTimeZoneId(const QByteArray& tzId) {
   updateTimeText();
 }
 
+void ClockWindow::syncPalette() {
+  // ensure we inherit the latest application palette
+  setPalette(QApplication::palette());
+  if (m_label) {
+    QPalette lp = m_label->palette();
+    lp.setColor(QPalette::WindowText, palette().color(QPalette::WindowText));
+    m_label->setPalette(lp);
+  }
+  update();
+}
+
 void ClockWindow::updateTimeText() {
   QDateTime now;
   if (!m_tzId.isEmpty()) {
@@ -63,6 +73,10 @@ void ClockWindow::updateTimeText() {
     now = QDateTime::currentDateTime();
   }
   m_label->setText(now.toString(QStringLiteral("HH:mm:ss")));
+}
+
+void ClockWindow::refreshTheme() {
+  syncPalette();
 }
 
 void ClockWindow::toggleVisible() {
@@ -81,6 +95,7 @@ void ClockWindow::toggleVisible() {
 
 void ClockWindow::showEvent(QShowEvent* e) {
   QWidget::showEvent(e);
+  syncPalette();
   updateTimeText();
 }
 

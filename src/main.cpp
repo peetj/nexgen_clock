@@ -1,6 +1,8 @@
 #include <QApplication>
 #include <QSettings>
 #include <QJsonObject>
+#include <QPalette>
+#include <QColor>
 
 #include "nexgen/themes/ThemeManager.h"
 #include "nexgen/sys/ipc/IpcServer.h"
@@ -18,6 +20,7 @@ int main(int argc, char** argv) {
 
   // Apply shared theme
   nexgen::themes::ThemeManager themes;
+  settings.sync();
   themes.load(settings);
   themes.applyTo(app);
   QObject::connect(&themes, &nexgen::themes::ThemeManager::themeChanged, [&] {
@@ -53,9 +56,30 @@ int main(int argc, char** argv) {
       return QJsonObject{{"ok", true}, {"tz", tz}};
     }
         if (cmd == QStringLiteral("reloadTheme")) {
-      themes.load(settings);
+      // IMPORTANT: QSettings can cache values across the process lifetime.
+      // When another app (tray) edits the settings, creating a fresh QSettings
+      // instance here is the most reliable way to pick up external changes.
+      QSettings s("Nexgen", "Utilities");
+      s.sync();
+      themes.load(s);
       themes.applyTo(app);
+      w.refreshTheme();
       return QJsonObject{{"ok", true}};
+    }
+    if (cmd == QStringLiteral("getThemeDebug")) {
+      QSettings s("Nexgen", "Utilities");
+      s.sync();
+      const int rawMode = s.value(QStringLiteral("Theme/mode"), -999).toInt();
+      const QString rawThemeId = s.value(QStringLiteral("Theme/themeId"), QString()).toString();
+
+      const QColor wcol = w.palette().color(QPalette::Window);
+      const QColor tcol = w.palette().color(QPalette::WindowText);
+      return QJsonObject{{"ok", true},
+        {"rawMode", rawMode},
+        {"rawThemeId", rawThemeId},
+        {"window", QJsonObject{{"r", wcol.red()}, {"g", wcol.green()}, {"b", wcol.blue()}, {"a", wcol.alpha()}}},
+        {"text", QJsonObject{{"r", tcol.red()}, {"g", tcol.green()}, {"b", tcol.blue()}, {"a", tcol.alpha()}}}
+      };
     }
     if (cmd == QStringLiteral("getState")) {
       return QJsonObject{{"ok", true}, {"visible", w.isVisible()}, {"tz", QString::fromUtf8(w.timeZoneId())}};

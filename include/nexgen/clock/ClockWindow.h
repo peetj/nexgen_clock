@@ -18,12 +18,16 @@ public:
 
 public slots:
   void toggleVisible();
+  void refreshTheme();
 
 protected:
   void showEvent(QShowEvent* e) override;
   void paintEvent(QPaintEvent* e) override;
 
 private:
+
+  void syncPalette();
+
   QLabel* m_label = nullptr;
   QTimer* m_timer = nullptr;
   QByteArray m_tzId; // IANA id, empty => local
