@@ -8,3 +8,4 @@ Format:
 
 ## 2026-04-20
 - abe03a4 Clock: drag-to-move, size presets, opacity + translucent background settings (IPC + persistence)
+- 1645e1a Clock: reduce Tiny size, fit window to content, allow 25% opacity
