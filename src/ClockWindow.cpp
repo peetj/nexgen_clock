@@ -94,7 +94,7 @@ void ClockWindow::loadUiSettings(QSettings& s) {
   s.endGroup();
 
   // clamp
-  if (m_opacity < 0.2) m_opacity = 0.2;
+  if (m_opacity < 0.25) m_opacity = 0.25;
   if (m_opacity > 1.0) m_opacity = 1.0;
 
   applySizePreset();
@@ -125,17 +125,15 @@ void ClockWindow::applySizePreset() {
   if (!m_label) return;
 
   int pt = 64;
-  int w = 320;
-  int h = 140;
   int mx = 24;
   int my = 18;
 
   switch (m_sizePreset) {
-    case SizePreset::Tiny:      pt = 28; w = 170; h =  80; mx = 14; my = 10; break;
-    case SizePreset::Small:     pt = 42; w = 240; h = 110; mx = 18; my = 14; break;
-    case SizePreset::Default:   pt = 64; w = 320; h = 140; mx = 24; my = 18; break;
-    case SizePreset::Large:     pt = 84; w = 420; h = 175; mx = 30; my = 22; break;
-    case SizePreset::VeryLarge: pt = 110;w = 540; h = 220; mx = 34; my = 26; break;
+    case SizePreset::Tiny:      pt = 18;  mx = 10; my = 8;  break; // ~half previous tiny
+    case SizePreset::Small:     pt = 36;  mx = 16; my = 12; break;
+    case SizePreset::Default:   pt = 64;  mx = 24; my = 18; break;
+    case SizePreset::Large:     pt = 84;  mx = 30; my = 22; break;
+    case SizePreset::VeryLarge: pt = 110; mx = 34; my = 26; break;
   }
 
   QFont f = m_label->font();
@@ -145,14 +143,22 @@ void ClockWindow::applySizePreset() {
 
   if (auto* lay = qobject_cast<QVBoxLayout*>(layout())) {
     lay->setContentsMargins(mx, my, mx, my);
+    lay->invalidate();
   }
 
-  resize(w, h);
+  // Size the window to tightly fit the label + margins.
+  // This ensures the painted background matches the content at all presets.
+  if (layout()) {
+    layout()->activate();
+    const QSize s = layout()->sizeHint();
+    setFixedSize(s);
+  }
+
   update();
 }
 
 void ClockWindow::setOpacity(qreal opacity) {
-  if (opacity < 0.2) opacity = 0.2;
+  if (opacity < 0.25) opacity = 0.25;
   if (opacity > 1.0) opacity = 1.0;
   m_opacity = opacity;
   setWindowOpacity(m_opacity);

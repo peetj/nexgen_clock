@@ -34,7 +34,7 @@ public:
   void setSizePreset(SizePreset p);
   SizePreset sizePreset() const { return m_sizePreset; }
 
-  // 0.2 .. 1.0 (window opacity)
+  // 0.25 .. 1.0 (window opacity)
   void setOpacity(qreal opacity);
   qreal opacity() const { return m_opacity; }
 
