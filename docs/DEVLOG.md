@@ -7,4 +7,4 @@ Format:
 - Entries include the commit hash and subject; include tag/version when present.
 
 ## 2026-04-20
-- (pending) Clock: drag-to-move, size presets, opacity + translucent background settings (IPC + persistence)
+- abe03a4 Clock: drag-to-move, size presets, opacity + translucent background settings (IPC + persistence)
